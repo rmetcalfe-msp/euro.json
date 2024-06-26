@@ -15,9 +15,20 @@ with open(BASE_DIR / 'euro.json', encoding=ENCODING) as f:
 with open(BASE_DIR / 'euro.groups.json', encoding=ENCODING) as f:
     groups_data = json.load(f)
 
+team_df = pd.read_csv(BASE_DIR / 'teams.csv')
+
+group_df = pd.read_csv(BASE_DIR / 'groups.csv')
+
+
+def calculate_team_points(points_table: dict) -> dict:
+    return group_df['Tier1'].map(points_table) + group_df['Tier2'].map(points_table) + group_df['Tier3'].map(points_table)
+
+
 # Function to calculate points
 def calculate_points(data):
     points_table = {}
+    date_table = {}
+
     for round in data["rounds"]:
         for match in round["matches"]:
             # Ensure 'score' and 'ft' keys exist in the match
@@ -26,7 +37,7 @@ def calculate_points(data):
                 score2 = match['score']['ft'][1]
                 team1 = match['team1']["name"]
                 team2 = match['team2']["name"]
-
+                
                 if team1 not in points_table:
                     points_table[team1] = 0
                 if team2 not in points_table:
@@ -41,22 +52,31 @@ def calculate_points(data):
                     points_table[team2] += 1
             else:
                 print(f"Skipping match due to missing 'ft' score: {match}")
+            
+            date = datetime.strptime(match["date"], "%Y-%m-%d")
+            date_table[date] = calculate_team_points(points_table)
 
-    return points_table
+    return pd.DataFrame(date_table, index=group_df.Group)
 
 # Calculate points
-points_table = calculate_points(euro_data)
+date_df = calculate_points(euro_data)
+
+# Create map of latest points
+points_map = dict(zip(date_df.index, date_df[date_df.columns[-1]]))
 
 # Load team config and calc points
-group_df = pd.read_csv(BASE_DIR / 'groups.csv')
-group_df['Total Points'] = group_df['Tier1'].map(points_table) + group_df['Tier2'].map(points_table) + group_df['Tier3'].map(points_table)
+group_df['Total Points'] = date_df[date_df.columns[-1]]
 group_df.sort_values(by='Total Points', ascending=False, inplace=True)
 
-team_df = pd.read_csv(BASE_DIR / 'teams.csv')
 
 # Display results
 st.title(f"Euro 2024 Points Table {datetime.today().strftime('%d-%m-%Y')}")
 st.dataframe(group_df, hide_index=True)
+
+# Flip and display
+graph_df = date_df.transpose()
+st.subheader("Points over time")
+st.line_chart(graph_df)
 
 st.subheader("Teams")
 st.dataframe(team_df, hide_index=True)
