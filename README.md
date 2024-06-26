@@ -14,4 +14,4 @@
 
 ## Screenshot
 
-![Screenshot](2024/260624_points.png)
+![Screenshot](260624_points.png)
