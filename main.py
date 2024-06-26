@@ -56,13 +56,10 @@ def calculate_points(data):
             date = datetime.strptime(match["date"], "%Y-%m-%d")
             date_table[date] = calculate_team_points(points_table)
 
-    return pd.DataFrame(date_table, index=group_df.Group)
+    return pd.DataFrame(date_table)
 
 # Calculate points
 date_df = calculate_points(euro_data)
-
-# Create map of latest points
-points_map = dict(zip(date_df.index, date_df[date_df.columns[-1]]))
 
 # Load team config and calc points
 group_df['Total Points'] = date_df[date_df.columns[-1]]
@@ -74,6 +71,8 @@ st.title(f"Euro 2024 Points Table {datetime.today().strftime('%d-%m-%Y')}")
 st.dataframe(group_df, hide_index=True)
 
 # Flip and display
+date_df['Group'] = group_df.Group
+date_df.set_index('Group', inplace=True)
 graph_df = date_df.transpose()
 st.subheader("Points over time")
 st.line_chart(graph_df)
