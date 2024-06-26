@@ -1,3 +1,4 @@
+from datetime import datetime
 import streamlit as st
 import pandas as pd
 import json
@@ -54,7 +55,7 @@ group_df.sort_values(by='Total Points', ascending=False, inplace=True)
 team_df = pd.read_csv(BASE_DIR / 'teams.csv')
 
 # Display results
-st.title("Euro 2024 Points Table")
+st.title(f"Euro 2024 Points Table {datetime.today().strftime('%d-%m-%Y')}")
 st.dataframe(group_df, hide_index=True)
 
 st.subheader("Teams")
