@@ -14,4 +14,4 @@
 
 ## Screenshot
 
-![Screenshot](2024-06-26_update.jpg)
+![Screenshot](2024-06-27_update.jpg)
